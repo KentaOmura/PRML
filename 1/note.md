@@ -310,4 +310,123 @@ $E[x^2] = \sigma^2 + \mu^2$
 従って、分散は
 $V[x] = \sigma^2 + \mu^2 - \mu^2$より、$V[x] = \sigma^2$
 
+---
+**■推定**
+ここからは推定方法について紹介していく。
+やりたいことは、観測されたデータからデータが生成された分布を推定したい。
 
+ある確率変数の集合$\boldsymbol{x} = (x_1,x_2,・・・,x_N)^T$が同じ分布から独立に観測されたとする。
+観測された分布をガウス分布と置くと、データ集合の確率は確率乗法定理より
+$p(\boldsymbol{x}|\mu,\sigma^2) = \prod_{n=1}^{N}p(x_n|\mu,\sigma)$となる。
+$\mu, \sigma^2$の関数とすると、これはガウス分布に対する尤度関数と呼ぶ。
+このデータ集合から、確率分布のパラメータを決める方法として、
+尤度関数を最大とするパラメータを求める事である。これを最尤推定と呼ぶ。
+尤度関数の両辺の対数を取ると、以下の式となる。
+
+$\ln p(\boldsymbol{x}|\mu,\sigma^2) = -\frac{N}{2}\ln (2\pi\sigma^2) -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(x_n - \mu)^2$
+
+$\mu$の関数として見ると、上に凸な関数となるので、両辺を$\mu$で微分して0となる箇所が
+最大値となる。
+
+両辺を$\mu$で微分すると以下の式になる。
+$\frac{\partial }{\partial \mu}\ln p = \frac{1}{\sigma^2}\sum_{n=1}^{N}(x_n-\mu)$ となる。
+この式が0となる時の$\mu$の値は以下となる。
+
+$\mu_{ML} = \frac{1}{N}\sum_{n=1}^{N}x_n$
+これをサンプル平均と呼ぶ。
+
+同様にして$\sigma^2$について最大化させる。
+
+$\ln p(\boldsymbol{x}|\mu,\sigma^2) = -\frac{N}{2}\ln (2\pi\sigma^2) -\frac{1}{2\sigma^2}\sum_{n=1}^{N}(x_n - \mu)^2$
+
+上記の式を$\sigma^2$で微分する。
+
+$\frac{\partial }{\partial \sigma^2}\ln p(\boldsymbol{x}|\mu,\sigma^2) = -\frac{N}{2\sigma^2} +\frac{1}{2\sigma^4}\sum_{n=1}^{N}(x_n - \mu)^2$
+この式が0となる時の$\sigma^2$の値は以下となる。
+
+$\sigma^2_{ML} = \frac{1}{N}\sum_{n=1}^{N}(x_n-\mu_{ML})^2$
+これをサンプル分散と呼ぶ。
+
+
+上記のサンプル平均とサンプル分散には観測された揺らぎのデータの値が入っている為、
+サンプル平均、分散共に確率変数となる。
+従って、期待値を取る事でこの揺らぎを止める。
+$E[\mu_{ML}] = \int \mu_{ML}p(\boldsymbol{x})d\boldsymbol{x} = \mu$
+
+$E[\sigma^2_{ML}] = \int \sigma^2_{ML}p(\boldsymbol{x})d\boldsymbol{x}$
+これはややこしい。
+地道に解く。（一旦$E$で記載しなおす）
+$右辺 = \frac{1}{N}E[\sum_{n}(x_n - \mu_{ML})^2]$
+$\hspace{23pt}=\frac{1}{N}\sum_{n} E[x_n^2 -2\mu_{ML}x_n + \mu_{ML}^2]$
+$\hspace{23pt}=\frac{1}{N}\sum_{n} (E[x_n^2] -\frac{2}{N}E[\sum_{m}x_mx_n] + E[\frac{1}{N^2}(\sum_{m}x_m)^2])$
+$\hspace{23pt}=\frac{1}{N}\sum_{n} (\mu^2+\sigma^2 -\frac{2}{N}\sum_{m}E[x_mx_n] + E[\frac{1}{N^2}(\sum_{m}x_m)^2])$
+$\hspace{23pt}=\frac{1}{N}\sum_{n} (\mu^2+\sigma^2 -\frac{2}{N}(\sigma^2+\mu^2 +(N-1)\mu^2)+ \frac{1}{N^2}E[(\sum_{m}x_m)^2])$
+$\hspace{23pt}=\frac{1}{N}\sum_{n} (\mu^2+\sigma^2 -\frac{2}{N}(\sigma^2+\mu^2 +(N-1)\mu^2)+ \frac{1}{N}((\sigma^2 + \mu^2)+(N-1)\mu^2))$
+$\hspace{23pt}=\frac{1}{N}\sum_{n} (\sigma^2 -\frac{1}{N}\sigma^2)$
+$\hspace{23pt}=\frac{N-1}{N}\sigma^2$
+
+よって、サンプル平均の期待値は母平均と一致するが、
+サンプル分散の分散は母分散の$\frac{N-1}{N}$されており、過小評価されている。
+（母分散より広がりが少ない。）
+これは、サンプル分散の平均からの差を算出する際に、サンプル平均を使用している為。
+サンプル分散は取得したデータからの差分しか求める事ができず、また平均がサンプル平均としているので、
+どうしても母分散と比べると過小評価されてしまう。
+因みに、サンプル分散の評価の際に母平均を使用する事ができるのであれば、サンプル分散の期待値は母分散に一致する。
+推定する際は、もちろん母平均なんて知らない事が多いので、
+母分散になるように以下の不変分散で推定を行う。
+$\tilde{V} = \frac{N}{N-1}\sigma^2_{ML}$
+
+上記より、最尤推定での推定の考えは、
+得られるデータは変動するが、生成モデルを決めるパラメータは不変の考えを主軸とし、
+データからモデルを制御しているパラメータを1つに絞って推定しているのがわかる。
+この考えの逆はどうなるのか？
+どういうことかというと、得られたデータは不変で、推定したパラメータは変動するという考え。
+つまり、最初に推定したパラメータが観測されたデータによって、推定するパラメータがどんどん変動していくという事。
+これが、ベイズ推定！
+ここで、ベイズの定理を思い出す。式は以下の通り。
+$p(x|y) \propto p(y|x)p(x)$ ※分母は規格化係数の為、省略した。
+上記の式は、生成モデルのパラメータ$x$の推定に対して、
+パラメータ$x$を固定した時のデータ$y$の分布との積を取る事で、
+データ$y$が観測された上での生成モデルのパラメータ$x$の推定を修正する式となっている。
+
+でも実際知りたいのは、データが観測された時の生成モデルのパラメータの分布ではなく、
+次にどういったデータが観測され得るのかを推定したい。（予測分布って呼ばれます。）
+**※ここは大事！機械学習のモチベーションは全てここにある！！**
+
+予測分布を最尤推定で求めるパターンと、ベイズ推定で求める2パターンで紹介する。
+
+例として、観測データ$x$と、それに対応する観測データ$t$が存在しており、
+観測データ$x$から対応する$t$の分布を求める事とする。
+
+ここで予測分布をガウス分布に従うと仮定する。
+また、平均は多項式である$y(\boldsymbol{w},x)$とし、精度を$\beta$とする。
+すると、以下の式で記載する事ができる。
+$p(t|x, \boldsymbol{w}, \beta) = N(t|y(\boldsymbol{w},x), \beta^{-1})$
+ここで、観測データが独立に$N$個観測された状況を考える。
+$\boldsymbol{x} = (x_1, x_2, ・・・, x_N)$、$\boldsymbol{t} = (t_1, t_2, ・・・, t_N)$
+
+まず、最尤推定法を用いて予測分布を算出する。
+同時に上記のデータが観測された時の尤度関数は以下の通り
+$p(\boldsymbol{t}|\boldsymbol{x}, \boldsymbol{w}, \beta) = \prod_{n}^{N} N(t_n|y(\boldsymbol{w},x_n), \beta^{-1})$
+
+両辺対数を取ると、以下の式となる。
+
+$\ln p(\boldsymbol{t}|\boldsymbol{x}, \boldsymbol{w}, \beta) = -\frac{N}{2}\ln (2\pi) + \frac{N}{2}\ln \beta -\frac{\beta}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$
+
+上記で$\boldsymbol{w}$に関しての項は、$-\frac{\beta}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$となる。$\ln p(\boldsymbol{t}|\boldsymbol{x}, \boldsymbol{w}, \beta)$が最大とする為には、
+$-\frac{\beta}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$を最大にする必要がある。
+上記の式で正の定数を掛けても$\boldsymbol{w}$の最大の位置は変わらないので、$\frac{1}{\beta}$を掛ける。
+また、符号を逆転させると、最小二乗法の式が導出できる。
+$\frac{1}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$
+この式を$\boldsymbol{w}$で微分して、$0$と置くことで$\boldsymbol{w}$の値を推定する事ができる。
+
+次に、$\beta$についても同様に最尤推定法で推定する。
+
+$\ln p(\boldsymbol{t}|\boldsymbol{x}, \boldsymbol{w}, \beta) = -\frac{N}{2}\ln (2\pi) + \frac{N}{2}\ln \beta -\frac{\beta}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$
+
+上記の式から$\beta$についての項だけを取り出すと、以下となる。
+$\frac{N}{2}\ln \beta -\frac{\beta}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$
+上記の式を$\beta$で微分して、$0$と置くことで、$\beta$を推定する事ができる。
+これで、最尤推定法により、予測分布のパラメータ$\beta_{ML},\boldsymbol{w}_{ML}$を算出できたので、
+予測分布は以下の式となる。
+$p(t|x, \boldsymbol{w}_{ML}, \beta_{ML}) = N(t|y(\boldsymbol{w}_{ML},x), \beta^{-1}_{ML})$
