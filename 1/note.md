@@ -417,7 +417,9 @@ $\ln p(\boldsymbol{t}|\boldsymbol{x}, \boldsymbol{w}, \beta) = -\frac{N}{2}\ln (
 $-\frac{\beta}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$を最大にする必要がある。
 上記の式で正の定数を掛けても$\boldsymbol{w}$の最大の位置は変わらないので、$\frac{1}{\beta}$を掛ける。
 また、符号を逆転させると、最小二乗法の式が導出できる。
+
 $\frac{1}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$
+
 この式を$\boldsymbol{w}$で微分して、$0$と置くことで$\boldsymbol{w}$の値を推定する事ができる。
 
 次に、$\beta$についても同様に最尤推定法で推定する。
@@ -425,8 +427,46 @@ $\frac{1}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$
 $\ln p(\boldsymbol{t}|\boldsymbol{x}, \boldsymbol{w}, \beta) = -\frac{N}{2}\ln (2\pi) + \frac{N}{2}\ln \beta -\frac{\beta}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$
 
 上記の式から$\beta$についての項だけを取り出すと、以下となる。
+
 $\frac{N}{2}\ln \beta -\frac{\beta}{2}\sum_{n}^{N}(t_n -y(\boldsymbol{w},x_n))^2$
+
 上記の式を$\beta$で微分して、$0$と置くことで、$\beta$を推定する事ができる。
 これで、最尤推定法により、予測分布のパラメータ$\beta_{ML},\boldsymbol{w}_{ML}$を算出できたので、
 予測分布は以下の式となる。
+
 $p(t|x, \boldsymbol{w}_{ML}, \beta_{ML}) = N(t|y(\boldsymbol{w}_{ML},x), \beta^{-1}_{ML})$
+
+次にベイズ推定での予測分布を算出する。
+その為に、事前分布として以下の分布を用意する。
+
+$p(\boldsymbol{w}|\alpha) = N(\boldsymbol{w}|\boldsymbol{0},\alpha^{-1}\boldsymbol{I}) = (\frac{\alpha}{2\pi})^{\frac{M+1}{2}}\exp (-\frac{\alpha}{2}\boldsymbol{w}^T\boldsymbol{w})$
+
+$\alpha$は制度パラメータ、$M+1$は$M$次元の$\boldsymbol{w}$の要素の数である。
+ベイズ推定を実施するには、尤度関数が必要であるが、上記の最尤推定法で出てきた尤度関数である。
+この尤度関数と事前分布を使用すると、事後分布は以下の式で記載できる。
+
+$p(\boldsymbol{w}|\boldsymbol{x},\boldsymbol{t},\alpha,\beta) \propto p(\boldsymbol{t}|\boldsymbol{x}, \boldsymbol{w}, \beta)p(\boldsymbol{w}|\alpha)$
+
+(規格化係数は省略している為、$\propto$で記載している)
+
+この事後分布を使用した予測分布は以下の式で記載できる。
+
+$p(t|x,\boldsymbol{x},\boldsymbol{t}) = \int p(t|x,\boldsymbol{w})p(\boldsymbol{w}|\boldsymbol{t},\boldsymbol{x})d\boldsymbol{w}$
+
+上記の式は、$\boldsymbol{w}$を$\boldsymbol{t},\boldsymbol{x}$を観測した時の事後分布と$\boldsymbol{w}$のパラメータを固定した時の$t$の尤度関数の積を$\boldsymbol{w}$の全場合を足し合わせた事になる。（周辺化）
+
+上記を計算すると以下の予測分布となる。
+
+$p(t|x,\boldsymbol{x},\boldsymbol{t}) = N(t|m(x),s^2(x))$
+
+この時、$m(x), s^2(x)$は以下のような式となる。
+
+$m(x) = \beta\boldsymbol{\phi}^T\boldsymbol{S}\sum_{n=1}^{N}\boldsymbol{\phi}(x_n)t_n$
+
+$s(x)^2 = \beta^{-1} + \boldsymbol{\phi}(x)^T\boldsymbol{S}\boldsymbol{\phi}(x)$
+
+行列$S$は以下の式となる。
+
+$\boldsymbol{S}^{-1} = \alpha\boldsymbol{I} + \beta\sum_{n=1}^{N}\boldsymbol{\phi}(x_n)\boldsymbol{\phi}(x_n)^T$
+
+同フォルダにpythonでの実装を格納した。
